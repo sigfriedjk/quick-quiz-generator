@@ -57,8 +57,11 @@ def draw_music_staff(clef_type, note_letter):
         return
 
     # Get note position
-    NOTE_Y = get_note_position(clef_type, note_letter)
     ADJUSTED_NOTE_X = NOTE_X + xAdj
+    if note_letter == "C1":
+        ledger_y = get_note_position(clef_type, note_letter)
+        draw.line([(ADJUSTED_NOTE_X - NOTE_RADIUS - 2, ledger_y), (ADJUSTED_NOTE_X + NOTE_RADIUS + 2, ledger_y)], fill="black", width=1)  # Ledger line
+    NOTE_Y = get_note_position(clef_type, note_letter)
 
     # Determine stem direction
     if NOTE_Y < STAFF_Y_START + (STAFF_SPACING * 2):
