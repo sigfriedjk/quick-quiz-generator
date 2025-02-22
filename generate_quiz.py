@@ -52,7 +52,9 @@ def create_pdf(quiz_type, filename="quiz.pdf"):
     column_spacing = width // 2  # Midpoint for two columns
     quiz_per_page = 4
     spacing = height // (quiz_per_page // 2 + 1)  # Adjusted spacing
-    question_spacing = 40  # Increased spacing between questions
+    math_question_spacing = 30  # Increased spacing between questions
+    music_question_spacing = 50  # Increased spacing between questions
+    image_column_offset = 120  # Space images into a second column within each quiz
     
     for i in range(4):  # 4 quizzes per page
         quiz = generate_quiz(quiz_type)
@@ -68,9 +70,10 @@ def create_pdf(quiz_type, filename="quiz.pdf"):
                 music_image = draw_music_staff(clef.lower(), note)  # Generate the image dynamically
                 if music_image:
                     img_reader = ImageReader(music_image)
-                    c.drawImage(img_reader, x_position + 20, y_position - (j+1) * question_spacing, width=50, height=50)
+                    img_x_position = x_position + 20 if j % 2 == 0 else x_position + 20 + image_column_offset
+                    c.drawImage(img_reader, img_x_position, y_position - 20 - (j//2 + 1) * music_question_spacing, width=50, height=50)
             else:
-                c.drawString(x_position + 20, y_position - (j+1) * question_spacing, question)
+                c.drawString(x_position + 20, y_position - (j+1) * math_question_spacing, question)
     
     c.save()
     print(f"Quiz saved as {filepath}")
