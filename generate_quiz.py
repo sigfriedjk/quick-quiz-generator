@@ -7,12 +7,16 @@ import os
 from generate_music_note import draw_music_staff
 
 # Define music note mappings (treble and bass clef)
-music_notes = [
-    "treble clef: C1", "treble clef: D1", "treble clef: E1", "treble clef: F1", "treble clef: G1", "treble clef: A1", "treble clef: B1",
-    "treble clef: C2", "treble clef: D2", "treble clef: E2", "treble clef: F2", "treble clef: G2",
-    "bass clef: C1", "bass clef: D1", "bass clef: E1", "bass clef: F1", "bass clef: G1", "bass clef: A1", "bass clef: B1",
-    "bass clef: C2", "bass clef: D2", "bass clef: E2", "bass clef: F2", "bass clef: G2"
-]
+music_notes = {
+    1: ["treble clef: C1", "treble clef: D1", "treble clef: E1", "treble clef: F1", "treble clef: G1",
+        "treble clef: C2", "treble clef: D2", "treble clef: E2", "treble clef: F2", "treble clef: G2"],
+    2: ["bass clef: C1", "bass clef: D1", "bass clef: E1", "bass clef: F1", "bass clef: G1",
+        "bass clef: C2", "bass clef: D2", "bass clef: E2", "bass clef: F2", "bass clef: G2"],
+    3: ["treble clef: C1", "treble clef: D1", "treble clef: E1", "treble clef: F1", "treble clef: G1",
+        "treble clef: C2", "treble clef: D2", "treble clef: E2", "treble clef: F2", "treble clef: G2",
+        "bass clef: C1", "bass clef: D1", "bass clef: E1", "bass clef: F1", "bass clef: G1",
+        "bass clef: C2", "bass clef: D2", "bass clef: E2", "bass clef: F2", "bass clef: G2"]
+}
 
 def generate_math_problem(problem_type, digits=2):
     """Generates a random math problem of the specified type with configurable digit length."""
@@ -32,15 +36,15 @@ def generate_math_problem(problem_type, digits=2):
         num1 = num2 * random.randint(lower, upper // num2)  # Ensure divisibility
         operator = "÷"
     else:
-        return random.choice(music_notes)
+        return random.choice(music_notes.get(digits, music_notes[3]))
     
     return f"{num1} {operator} {num2} = ______"
 
-def generate_quiz(quiz_type):
+def generate_quiz(quiz_type, digits):
     """Generates 10 quiz questions of the specified type."""
-    return [generate_math_problem(quiz_type) for _ in range(10)]
+    return [generate_math_problem(quiz_type, digits) for _ in range(10)]
 
-def create_pdf(quiz_type, filename="quiz.pdf"):
+def create_pdf(quiz_type, digits, filename="quiz.pdf"):
     """Creates a PDF with 4 quizzes per page in two columns with improved spacing."""
     output_dir = "output"
     os.makedirs(output_dir, exist_ok=True)
@@ -57,7 +61,7 @@ def create_pdf(quiz_type, filename="quiz.pdf"):
     image_column_offset = 120  # Space images into a second column within each quiz
     
     for i in range(4):  # 4 quizzes per page
-        quiz = generate_quiz(quiz_type)
+        quiz = generate_quiz(quiz_type, digits)
         x_position = margin if i % 2 == 0 else column_spacing + margin
         y_position = height - margin - ((i // 2) * spacing)  # Keep first row unchanged
         if i >= 2:
@@ -81,6 +85,7 @@ def create_pdf(quiz_type, filename="quiz.pdf"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate a quiz PDF of a specific type.")
     parser.add_argument("type", choices=["addition", "subtraction", "multiplication", "division", "music"], help="Type of quiz to generate")
+    parser.add_argument("digits", type=int, default=2, help="Number of digits for math problems, or clef selection for music (1=treble, 2=bass, 3=mixed)")
     args = parser.parse_args()
     
-    create_pdf(args.type, filename=f"quiz_{args.type}.pdf")
+    create_pdf(args.type, args.digits, filename=f"quiz_{args.type}.pdf")
