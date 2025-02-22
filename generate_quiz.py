@@ -2,12 +2,16 @@ import random
 import argparse
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
 import os
+from generate_music_note import draw_music_staff
 
-# Define music notes (treble and bass clef)
+# Define music note mappings (treble and bass clef)
 music_notes = [
-    "Treble Clef: C", "Treble Clef: D", "Treble Clef: E", "Treble Clef: F", "Treble Clef: G", "Treble Clef: A", "Treble Clef: B",
-    "Bass Clef: C", "Bass Clef: D", "Bass Clef: E", "Bass Clef: F", "Bass Clef: G", "Bass Clef: A", "Bass Clef: B"
+    "treble clef: C1", "treble clef: D1", "treble clef: E1", "treble clef: F1", "treble clef: G1", "treble clef: A1", "treble clef: B1",
+    "treble clef: C2", "treble clef: D2", "treble clef: E2", "treble clef: F2", "treble clef: G2",
+    "bass clef: C1", "bass clef: D1", "bass clef: E1", "bass clef: F1", "bass clef: G1", "bass clef: A1", "bass clef: B1",
+    "bass clef: C2", "bass clef: D2", "bass clef: E2", "bass clef: F2", "bass clef: G2"
 ]
 
 def generate_math_problem(problem_type, digits=2):
@@ -48,7 +52,7 @@ def create_pdf(quiz_type, filename="quiz.pdf"):
     column_spacing = width // 2  # Midpoint for two columns
     quiz_per_page = 4
     spacing = height // (quiz_per_page // 2 + 1)  # Adjusted spacing
-    question_spacing = 30  # Increased spacing between questions
+    question_spacing = 40  # Increased spacing between questions
     
     for i in range(4):  # 4 quizzes per page
         quiz = generate_quiz(quiz_type)
@@ -59,7 +63,14 @@ def create_pdf(quiz_type, filename="quiz.pdf"):
         
         c.drawString(x_position, y_position, f"{quiz_type.capitalize()} Quiz")
         for j, question in enumerate(quiz):
-            c.drawString(x_position + 20, y_position - (j+1) * question_spacing, question)
+            if quiz_type == "music":
+                clef, note = question.split(" clef: ")
+                music_image = draw_music_staff(clef.lower(), note)  # Generate the image dynamically
+                if music_image:
+                    img_reader = ImageReader(music_image)
+                    c.drawImage(img_reader, x_position + 20, y_position - (j+1) * question_spacing, width=50, height=50)
+            else:
+                c.drawString(x_position + 20, y_position - (j+1) * question_spacing, question)
     
     c.save()
     print(f"Quiz saved as {filepath}")

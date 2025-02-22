@@ -19,14 +19,18 @@ NOTE_ORDER = ["G2", "F2", "E2", "D2", "C2", "B2", "A2", "G1", "F1", "E1", "D1", 
 def get_note_position(clef, note):
     try:
         index = NOTE_ORDER.index(note)
-        spaces_from_middle = 6 - index  # Shift to align with middle C concept
-        base_offset = 3 if clef == "bass" else 0  # Adjust for bass clef
-        return STAFF_Y_START + (STAFF_SPACING * 0.5 * (spaces_from_middle + base_offset))
+        base_offset = -5 if clef == "treble" else 3  # Treble shifts down, bass stays
+        spaces_from_middle = 6 - index  
+        shift = STAFF_SPACING * 0.5 * (spaces_from_middle + base_offset)
+        
+        return STAFF_Y_START - shift if clef == "treble" else STAFF_Y_START + shift
     except ValueError:
-        return STAFF_Y_START + (STAFF_SPACING * 2)  # Default to middle
+        return STAFF_Y_START + (STAFF_SPACING * 2)  # Default position
+
 
 # Clef selection
 def draw_music_staff(clef_type, note_letter):
+    """Draws a music staff with a given clef and note, returning the image object."""
     clef_images = {
         "treble": ("images/treble.png", 375, 640, (-3, STAFF_Y_START - 11), 0.08, 0),
         "bass": ("images/bass.png", 549, 640, (3, STAFF_Y_START + 2), 0.04, 3)
@@ -83,14 +87,15 @@ def draw_music_staff(clef_type, note_letter):
     )
     draw.line([(stem_x, stem_y_start), (stem_x, stem_y_end)], fill="black", width=1)
 
-    # Save and show the image
-    output_path = "output/music_staff.png"
-    img.save(output_path)
-    img.show()
+    return img
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate a music staff with a clef and note.")
     parser.add_argument("clef", choices=["treble", "bass"], help="Select the clef (treble or bass)")
     parser.add_argument("note", choices=NOTE_ORDER, help="Select the note (A1-G2)")
     args = parser.parse_args()
-    draw_music_staff(args.clef, args.note)
+    img = draw_music_staff(args.clef, args.note)
+    output_path = "output/music_staff.png"
+    img.save(output_path)
+    img.show()
