@@ -1,20 +1,32 @@
+import cv2
+import numpy as np
 from PIL import Image, ImageDraw
 import sys
 
 # Constants
 SIZE = 50  # Reduce image size to fit everything
 STAFF_LINES = 5
-STAFF_SPACING = 5  # Reduce spacing for compactness
-STAFF_Y_START = 20  # Move staff lower for better positioning
-WHOLE_NOTE_RADIUS = 3  # Scale down the note size
-NOTE_X = 25  # Adjust position closer to clef
-NOTE_Y = STAFF_Y_START + (STAFF_SPACING * 2)  # Third line placement
+STAFF_SPACING = 7  # Reduce spacing for compactness
+STAFF_Y_START = 10  # Move staff lower for better positioning
+WHOLE_NOTE_RADIUS = 5  # Scale down the note size
+NOTE_X = 27  # Adjust position closer to clef
+note_positions = {
+    "A": STAFF_Y_START + (STAFF_SPACING * 4),
+    "B": STAFF_Y_START + (STAFF_SPACING * 3.5),
+    "C": STAFF_Y_START + (STAFF_SPACING * 3),
+    "D": STAFF_Y_START + (STAFF_SPACING * 2.5),
+    "E": STAFF_Y_START + (STAFF_SPACING * 2),
+    "F": STAFF_Y_START + (STAFF_SPACING * 1.5),
+    "G": STAFF_Y_START + (STAFF_SPACING * 1)
+}
+note_letter = sys.argv[2] if len(sys.argv) > 2 else "C"
+NOTE_Y = note_positions.get(note_letter.upper(), STAFF_Y_START + (STAFF_SPACING * 2))  # Third line placement
 
 # Clef selection
 clef_type = sys.argv[1] if len(sys.argv) > 1 else "treble"
 clef_images = {
-    "treble": ("images/treble.png", 375, 640, (5, STAFF_Y_START - 10)),
-    "bass": ("images/bass.png", 549, 640, (5, STAFF_Y_START))
+    "treble": ("images/treble.png", 375, 640, (-3, STAFF_Y_START - 11), 0.08),
+    "bass": ("images/bass.png", 549, 640, (3, STAFF_Y_START +2 ), 0.04)
 }
 
 # Create a blank square image with a white background
@@ -24,14 +36,17 @@ draw = ImageDraw.Draw(img)
 # Draw the staff lines
 for i in range(STAFF_LINES):
     y = STAFF_Y_START + (i * STAFF_SPACING)
-    draw.line([(5, y), (SIZE - 5, y)], fill="black", width=1)
+    draw.line([(0, y), (SIZE, y)], fill="black", width=1)
 
 # Load and paste the clef image
 if clef_type in clef_images:
-    clef_path, orig_width, orig_height, position = clef_images[clef_type]
+    clef_path, orig_width, orig_height, position, factor = clef_images[clef_type]
     try:
-        clef_img = Image.open(clef_path).convert("RGBA")
-        clef_img = clef_img.resize((int(orig_width * 0.05), int(orig_height * 0.05)))  # Scale proportionally
+        clef_img = cv2.imread(clef_path, cv2.IMREAD_UNCHANGED)
+        scale_factor = factor
+        new_size = (int(orig_width * scale_factor), int(orig_height * scale_factor))
+        clef_img = cv2.resize(clef_img, new_size, interpolation=cv2.INTER_AREA)
+        clef_img = Image.fromarray(cv2.cvtColor(clef_img, cv2.COLOR_BGRA2RGBA))
         img.paste(clef_img, position, clef_img)  # Adjust position
     except FileNotFoundError:
         print(f"Error: {clef_path} not found. Make sure it's in the correct directory.")
@@ -47,5 +62,6 @@ draw.ellipse(
 )
 
 # Save and show the image
-img.save("music_staff.png")
+output_path = "output/music_staff.png"
+img.save(output_path)
 img.show()
