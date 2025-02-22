@@ -12,27 +12,18 @@ NOTE_RADIUS = 4  # Scale down the note size
 NOTE_X = 33  # Adjust position closer to clef
 NOTE_STEM_HEIGHT = STAFF_SPACING * 3  # Standard stem height
 
-# Note positions for clefs
-note_positions = {
-    "treble": {
-        "A": STAFF_Y_START + (STAFF_SPACING * 4),
-        "B": STAFF_Y_START + (STAFF_SPACING * 3.5),
-        "C": STAFF_Y_START + (STAFF_SPACING * 3),
-        "D": STAFF_Y_START + (STAFF_SPACING * 2.5),
-        "E": STAFF_Y_START + (STAFF_SPACING * 2),
-        "F": STAFF_Y_START + (STAFF_SPACING * 1.5),
-        "G": STAFF_Y_START + (STAFF_SPACING * 1)
-    },
-    "bass": {
-        "A": STAFF_Y_START + (STAFF_SPACING * 2),
-        "B": STAFF_Y_START + (STAFF_SPACING * 1.5),
-        "C": STAFF_Y_START + (STAFF_SPACING * 1),
-        "D": STAFF_Y_START,
-        "E": STAFF_Y_START - (STAFF_SPACING * 1),
-        "F": STAFF_Y_START - (STAFF_SPACING * 1.5),
-        "G": STAFF_Y_START - (STAFF_SPACING * 2)
-    }
-}
+# Define note positions using an array-based approach
+NOTE_ORDER = ["G2", "F2", "E2", "D2", "C2", "B2", "A2", "G1", "F1", "E1", "D1", "C1", "B1", "A1"]
+
+# Function to compute note position
+def get_note_position(clef, note):
+    try:
+        index = NOTE_ORDER.index(note)
+        spaces_from_middle = 6 - index  # Shift to align with middle C concept
+        base_offset = 3 if clef == "bass" else 0  # Adjust for bass clef
+        return STAFF_Y_START + (STAFF_SPACING * 0.5 * (spaces_from_middle + base_offset))
+    except ValueError:
+        return STAFF_Y_START + (STAFF_SPACING * 2)  # Default to middle
 
 # Clef selection
 def draw_music_staff(clef_type, note_letter):
@@ -66,7 +57,7 @@ def draw_music_staff(clef_type, note_letter):
         return
 
     # Get note position
-    NOTE_Y = note_positions.get(clef_type, {}).get(note_letter.upper(), STAFF_Y_START + (STAFF_SPACING * 2))
+    NOTE_Y = get_note_position(clef_type, note_letter)
     ADJUSTED_NOTE_X = NOTE_X + xAdj
 
     # Determine stem direction
@@ -97,6 +88,6 @@ def draw_music_staff(clef_type, note_letter):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate a music staff with a clef and note.")
     parser.add_argument("clef", choices=["treble", "bass"], help="Select the clef (treble or bass)")
-    parser.add_argument("note", choices=["A", "B", "C", "D", "E", "F", "G"], help="Select the note (A-G)")
+    parser.add_argument("note", choices=NOTE_ORDER, help="Select the note (A1-G2)")
     args = parser.parse_args()
     draw_music_staff(args.clef, args.note)
