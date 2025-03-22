@@ -3,7 +3,7 @@ import argparse
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
-import os
+import io
 from generate_music_note import draw_music_staff
 
 # Define music note mappings (treble and bass clef)
@@ -44,13 +44,10 @@ def generate_quiz(quiz_type, digits):
     """Generates 10 quiz questions of the specified type."""
     return [generate_math_problem(quiz_type, digits) for _ in range(10)]
 
-def create_pdf(quiz_type, digits, filename="quiz.pdf"):
-    """Creates a PDF with 4 quizzes per page in two columns with improved spacing."""
-    output_dir = "output"
-    os.makedirs(output_dir, exist_ok=True)
-    filepath = os.path.join(output_dir, filename)
-    
-    c = canvas.Canvas(filepath, pagesize=letter)
+def create_pdf(quiz_type, digits):
+    """Creates a PDF in memory with 4 quizzes per page in two columns with improved spacing."""
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
     margin = 50
     column_spacing = width // 2  # Midpoint for two columns
@@ -80,7 +77,8 @@ def create_pdf(quiz_type, digits, filename="quiz.pdf"):
                 c.drawString(x_position + 20, y_position - (j+1) * math_question_spacing, question)
     
     c.save()
-    print(f"Quiz saved as {filepath}")
+    buffer.seek(0)
+    return buffer.getvalue()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate a quiz PDF of a specific type.")
@@ -88,4 +86,10 @@ if __name__ == "__main__":
     parser.add_argument("digits", type=int, default=2, help="Number of digits for math problems, or clef selection for music (1=treble, 2=bass, 3=mixed)")
     args = parser.parse_args()
     
-    create_pdf(args.type, args.digits, filename=f"quiz_{args.type}.pdf")
+    pdf_data = create_pdf(args.type, args.digits)
+    filename = f"quiz_{args.type}.pdf"
+    
+    with open(filename, "wb") as f:
+        f.write(pdf_data)
+        
+    print(f"Quiz saved as {filename}")

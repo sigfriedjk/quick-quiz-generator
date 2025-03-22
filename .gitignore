@@ -204,5 +204,5 @@ override.tf.json
 # My Additions
 output
 archive
-quiz-lambda.zip
+#quiz-lambda.zip
 package

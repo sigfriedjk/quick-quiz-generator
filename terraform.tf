@@ -2,14 +2,10 @@ provider "aws" {
   region = "us-east-1" # Required for ACM with API Gateway
 }
 
-resource "aws_s3_bucket" "lambda_bucket" {
-  bucket = "math-thekingfamily-email-lambda"
-}
-
 resource "aws_s3_object" "lambda_package" {
-  bucket = aws_s3_bucket.lambda_bucket.id
-  key    = "lambda.zip"
-  source = "./lambda.zip"  # Ensure this zip file contains your Python code
+  bucket = "sigfriedjk-quickquiz-generator-bundles"  # Use the static bucket name
+  key    = "quiz-lambda.zip"
+  source = "./quiz-lambda.zip"  # Ensure this zip file contains your Python code
 }
 
 resource "aws_iam_role" "lambda_role" {
@@ -40,9 +36,9 @@ resource "aws_lambda_function" "quiz_lambda" {
   role            = aws_iam_role.lambda_role.arn
   runtime         = "python3.12"
   handler         = "lambda_function.lambda_handler"
-  s3_bucket       = aws_s3_bucket.lambda_bucket.id
+  s3_bucket       = "sigfriedjk-quickquiz-generator-bundles"  # Use the static bucket name
   s3_key          = aws_s3_object.lambda_package.key
-  source_code_hash = filebase64sha256("./lambda.zip")
+  source_code_hash = filebase64sha256("./quiz-lambda.zip")
   timeout         = 10
 }
 
@@ -109,8 +105,15 @@ resource "aws_apigatewayv2_domain_name" "custom_domain" {
 resource "aws_apigatewayv2_api_mapping" "custom_mapping" {
   api_id      = aws_apigatewayv2_api.quiz_api.id
   domain_name = aws_apigatewayv2_domain_name.custom_domain.id
-  stage       = "$default"
+  stage       = aws_apigatewayv2_stage.default.id 
 }
+
+resource "aws_apigatewayv2_stage" "default" {
+  api_id      = aws_apigatewayv2_api.quiz_api.id
+  name        = "$default"
+  auto_deploy = true
+}
+
 
 resource "aws_route53_record" "custom_api_dns" {
   zone_id = "Z0724761289BFRC8HX0Q3"

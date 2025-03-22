@@ -1,4 +1,4 @@
-name: Deploy to S3
+name: Deploy to AWS
 
 on:
   push:
@@ -13,18 +13,49 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up AWS CLI
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+
+    - name: Install Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.6.0  # Ensure Terraform version is compatible
+
+    - name: Install AWS CLI
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1  # Change this to your AWS region
+        aws-region: us-east-1  # Change to your AWS region
 
-    - name: Run the Bash script (run.sh)
+    - name: Install dependencies and create package
       run: |
-        chmod +x ./make-zip.sh  # Ensure the script is executable
-        ./make-zip.sh           # Execute the script
+        chmod +x ./make-zip.sh
+        ./make-zip.sh  # Runs your build script
 
-    - name: Copy output.html to S3
+    - name: Upload Lambda package to S3
       run: |
         aws s3 cp ./quiz-lambda.zip s3://sigfriedjk-quickquiz-generator-bundles/quiz-lambda.zip
+
+    - name: Download Terraform State File from S3
+      run: |
+        mkdir -p terraform  # Ensure the terraform directory exists
+        aws s3 cp s3://sigfriedjk-quickquiz-generator-bundles/terraform.tfstate terraform/terraform.tfstate || echo "No existing state file found, continuing..."
+
+    - name: Initialize Terraform
+      run: |
+        terraform init
+
+    - name: Validate Terraform configuration
+      run: |
+        terraform validate
+
+    - name: Apply Terraform (Deploy Infrastructure)
+      run: |
+        terraform apply -auto-approve
+
+    - name: Upload Terraform State File to S3
+      run: |
+        aws s3 cp terraform/terraform.tfstate s3://sigfriedjk-quickquiz-generator-bundles/terraform.tfstate

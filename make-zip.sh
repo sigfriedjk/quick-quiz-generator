@@ -32,7 +32,7 @@ cd ../../../../
 
 # Add Python scripts to the zip
 echo "Adding Python files..."
-zip ${ZIP_NAME} *.py
+zip ${ZIP_NAME} src/*.py
 
 # Add images directory (if exists)
 if [ -d "images" ]; then

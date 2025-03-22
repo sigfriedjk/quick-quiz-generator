@@ -1,0 +1,88 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:GetObjectTagging"
+            ],
+            "Resource": [
+                "arn:aws:s3:::sigfriedjk-quickquiz-generator-bundles",
+                "arn:aws:s3:::sigfriedjk-quickquiz-generator-bundles/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateRole",
+                "iam:AttachRolePolicy",
+                "iam:PutRolePolicy",
+                "iam:PassRole",
+                "iam:GetRole",
+                "iam:ListRolePolicies",
+                "iam:DeleteRole",
+                "iam:DetachRolePolicy",
+                "iam:ListAttachedRolePolicies",
+                "iam:ListEntitiesForPolicy"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/lambda_execution_role",
+                "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "lambda:GetPolicy",
+                "lambda:CreateFunction",
+                "lambda:UpdateFunctionCode",
+                "lambda:GetFunction",
+                "lambda:DeleteFunction",
+                "lambda:InvokeFunction",
+                "lambda:AddPermission",
+                "lambda:RemovePermission",
+                "lambda:ListVersionsByFunction",
+                "lambda:GetFunctionCodeSigningConfig"
+            ],
+            "Resource": "arn:aws:lambda:us-east-1:*:function:quiz_lambda"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "apigateway:POST",
+                "apigateway:PUT",
+                "apigateway:GET",
+                "apigateway:DELETE",
+                "apigateway:PATCH"
+            ],
+            "Resource": [
+                "arn:aws:apigateway:us-east-1::/apis/*",
+                "arn:aws:apigateway:us-east-1::/domainnames/math.thekingfamily.email",
+                "arn:aws:apigateway:us-east-1::/domainnames/math.thekingfamily.email/apimappings/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "acm:RequestCertificate",
+                "acm:DescribeCertificate",
+                "acm:DeleteCertificate",
+                "acm:ListTagsForCertificate"
+            ],
+            "Resource": "arn:aws:acm:us-east-1:*:certificate/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "route53:ChangeResourceRecordSets",
+                "route53:GetChange",
+                "route53:ListResourceRecordSets",
+                "route53:GetHostedZone"
+            ],
+            "Resource": "arn:aws:route53:::hostedzone/Z0724761289BFRC8HX0Q3"
+        }
+    ]
+}
