@@ -42,7 +42,7 @@ jobs:
     - name: Download Terraform State File from S3
       run: |
         mkdir -p terraform  # Ensure the terraform directory exists
-        aws s3 cp s3://sigfriedjk-quickquiz-generator-bundles/terraform.tfstate terraform/terraform.tfstate || echo "No existing state file found, continuing..."
+        aws s3 cp s3://sigfriedjk-quickquiz-generator-bundles/terraform.tfstate terraform.tfstate || echo "No existing state file found, continuing..."
 
     - name: Initialize Terraform
       run: |
@@ -58,4 +58,4 @@ jobs:
 
     - name: Upload Terraform State File to S3
       run: |
-        aws s3 cp terraform/terraform.tfstate s3://sigfriedjk-quickquiz-generator-bundles/terraform.tfstate
+        aws s3 cp terraform.tfstate s3://sigfriedjk-quickquiz-generator-bundles/terraform.tfstate
