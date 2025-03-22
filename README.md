@@ -12,6 +12,9 @@
 # Use pip to remove things not in the requirements
 `pip freeze | grep -v -f requirements.txt - | grep -v '^#' | xargs pip uninstall -y`
 
+`aws s3 cp ./quiz-lambda.zip s3://sigfriedjk-quickquiz-generator-bundles/quiz-lambda.zip`
+
+https://s3.amazonaws.com/sigfriedjk-quickquiz-generator-bundles/quiz-lambda.zip
 
 Terraform
 ```
