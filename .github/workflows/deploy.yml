@@ -22,9 +22,9 @@ jobs:
 
     - name: Run the Bash script (run.sh)
       run: |
-        chmod +x ./run.sh  # Ensure the script is executable
+        chmod +x ./make-zip.sh  # Ensure the script is executable
         ./make-zip.sh           # Execute the script
 
     - name: Copy output.html to S3
       run: |
-        aws s3 cp ./quiz-lamnda.zip s3://sigfriedjk-quickquiz-generator-bundles/quiz-lambda.zip
+        aws s3 cp ./quiz-lambda.zip s3://sigfriedjk-quickquiz-generator-bundles/quiz-lambda.zip
