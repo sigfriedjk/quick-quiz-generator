@@ -1,0 +1,30 @@
+name: Deploy to S3
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1  # Change this to your AWS region
+
+    - name: Run the Bash script (run.sh)
+      run: |
+        chmod +x ./run.sh  # Ensure the script is executable
+        ./make-zip.sh           # Execute the script
+
+    - name: Copy output.html to S3
+      run: |
+        aws s3 cp ./quiz-lamnda.zip s3://sigfriedjk-quickquiz-generator-bundles/quiz-lambda.zip

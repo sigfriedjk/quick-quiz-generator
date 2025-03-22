@@ -1,5 +1,3 @@
-import cv2
-import numpy as np
 from PIL import Image, ImageDraw
 import argparse
 
@@ -49,11 +47,10 @@ def draw_music_staff(clef_type, note_letter):
     if clef_type in clef_images:
         clef_path, orig_width, orig_height, position, factor, xAdj = clef_images[clef_type]
         try:
-            clef_img = cv2.imread(clef_path, cv2.IMREAD_UNCHANGED)
+            clef_img = Image.open(clef_path).convert("RGBA")  # Open the image with alpha transparency
             new_size = (int(orig_width * factor), int(orig_height * factor))
-            clef_img = cv2.resize(clef_img, new_size, interpolation=cv2.INTER_AREA)
-            clef_img = Image.fromarray(cv2.cvtColor(clef_img, cv2.COLOR_BGRA2RGBA))
-            img.paste(clef_img, position, clef_img)  # Adjust position
+            clef_img = clef_img.resize(new_size, Image.LANCZOS)  # Resize with high-quality filter
+            img.paste(clef_img, position, clef_img)  # Paste using the alpha channel
         except FileNotFoundError:
             print(f"Error: {clef_path} not found. Make sure it's in the correct directory.")
     else:
