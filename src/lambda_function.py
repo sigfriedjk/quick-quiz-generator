@@ -1,10 +1,11 @@
-from generate_quiz import create_pdf 
+import os
 import json
-from urllib.parse import parse_qs
 import base64
+from urllib.parse import parse_qs
+from generate_quiz import create_pdf
 
-# Define the required password
-REQUIRED_PASSWORD = "nHvZtlP17pMWbMX3mUPbRZ96"
+# Load the required password from an environment variable
+REQUIRED_PASSWORD = os.getenv("PASSWORD")
 
 def lambda_handler(event, context):
     """
@@ -27,6 +28,15 @@ def lambda_handler(event, context):
 
         # 2. Validate password
         password = query_params.get('password', [None])[0]
+
+        if not REQUIRED_PASSWORD:
+            print("Environment variable PASSWORD is not set.")
+            return {
+                "statusCode": 500,
+                "body": json.dumps({"error": "Server misconfiguration: PASSWORD is not set."}),
+                "headers": {'Content-Type': 'application/json'}
+            }
+
         if password != REQUIRED_PASSWORD:
             error_message = "Invalid or missing password."
             print(error_message)  # Log unauthorized access
@@ -100,21 +110,3 @@ def lambda_handler(event, context):
             "headers": {'Content-Type': 'application/json'}
         }
 
-def main():
-    """
-    Main function to test the lambda_handler locally.
-    """
-    # Create a sample event and context. Adjust the event to test different quiz types and digits.
-    event = {
-        'rawQueryString': 'type=addition&digits=2&password=nHvZtlP17pMWbMX3mUPbRZ96',  # Example: correct password
-    }
-    context = {}  # You can pass an empty context for local testing
-
-    # Call the lambda_handler
-    response = lambda_handler(event, context)
-
-    # Print the response
-    print(json.dumps(response, indent=2))
-
-if __name__ == "__main__":
-    main()
