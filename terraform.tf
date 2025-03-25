@@ -40,6 +40,19 @@ resource "aws_lambda_function" "quiz_lambda" {
   s3_key          = aws_s3_object.lambda_package.key
   source_code_hash = filebase64sha256("./quiz-lambda.zip")
   timeout         = 10
+
+  # Setting environment variables
+  environment {
+    variables = {
+      PASSWORD = var.lambda_password
+    }
+  }
+}
+
+variable "lambda_password" {
+  description = "Password for accessing the Lambda function"
+  type        = string
+  sensitive   = true
 }
 
 resource "aws_apigatewayv2_api" "quiz_api" {
@@ -113,7 +126,6 @@ resource "aws_apigatewayv2_stage" "default" {
   name        = "$default"
   auto_deploy = true
 }
-
 
 resource "aws_route53_record" "custom_api_dns" {
   zone_id = "Z0724761289BFRC8HX0Q3"

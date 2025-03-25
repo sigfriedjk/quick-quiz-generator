@@ -54,7 +54,7 @@ jobs:
 
     - name: Apply Terraform (Deploy Infrastructure)
       run: |
-        terraform apply -auto-approve
+        terraform apply -auto-approve -var="lambda_password=${{ secrets.PASSWORD }}"
 
     - name: Upload Terraform State File to S3
       run: |
