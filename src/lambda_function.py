@@ -47,18 +47,31 @@ def lambda_handler(event, context):
 
         # 3. Extract quiz parameters
         quiz_type = query_params.get("type", "addition")
-        digits = query_params.get("digits", "1")  # Default to "1", then convert to int safely
+        raw_digits = query_params.get("digits")
+        raw_digits_first = query_params.get("digits1") or query_params.get("digits_first") or raw_digits
+        raw_digits_second = query_params.get("digits2") or query_params.get("digits_second")
+        if raw_digits_second is None and raw_digits is not None:
+            raw_digits_second = raw_digits
+
+        def parse_int(value, field_name):
+            if value is None:
+                return None
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                raise ValueError(f"{field_name} must be a valid integer.")
 
         try:
-            digits = int(digits)
-        except ValueError:
+            digits_first = parse_int(raw_digits_first, "digits1")
+            digits_second = parse_int(raw_digits_second, "digits2")
+        except ValueError as exc:
             return {
                 "statusCode": 400,
-                "body": json.dumps({"error": "Digits must be a valid positive integer."}),
+                "body": json.dumps({"error": str(exc)}),
                 "headers": {'Content-Type': 'application/json'}
             }
 
-        print(f"Quiz type: {quiz_type}, Digits: {digits}")  # Log quiz_type and digits
+        print(f"Quiz type: {quiz_type}, digits_first: {digits_first}, digits_second: {digits_second}")  # Log quiz_type and digits
 
         # 4. Validate input
         valid_quiz_types = ["addition", "subtraction", "multiplication", "division", "music"]
@@ -69,22 +82,37 @@ def lambda_handler(event, context):
                 "headers": {'Content-Type': 'application/json'}
             }
 
-        if quiz_type == "music" and digits not in [1, 2, 3]:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": "For music quizzes, digits must be 1, 2, or 3 (treble, bass, mixed)."}),
-                "headers": {'Content-Type': 'application/json'}
-            }
-        if quiz_type != "music" and digits < 1:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": "Digits must be a positive integer."}),
-                "headers": {'Content-Type': 'application/json'}
-            }
+        if quiz_type == "music":
+            clef_selection = digits_first if digits_first is not None else 3
+            if clef_selection not in [1, 2, 3]:
+                return {
+                    "statusCode": 400,
+                    "body": json.dumps({"error": "For music quizzes, digits must be 1, 2, or 3 (treble, bass, mixed)."}),
+                    "headers": {'Content-Type': 'application/json'}
+                }
+            digits_first = clef_selection
+            digits_second = None
+        else:
+            digits_first = digits_first if digits_first is not None else 2
+            digits_second = digits_second if digits_second is not None else digits_first
 
-        # 5. Generate the PDF 
+            if digits_first < 1 or digits_second < 1:
+                return {
+                    "statusCode": 400,
+                    "body": json.dumps({"error": "Digits must be positive integers for math quizzes."}),
+                    "headers": {'Content-Type': 'application/json'}
+                }
+
+        # 5. Generate the PDF
         print("Generating PDF...")  # Log before PDF generation
-        pdf_content = create_pdf(quiz_type, digits)
+        try:
+            pdf_content = create_pdf(quiz_type, digits_first, digits_second)
+        except ValueError as exc:
+            return {
+                "statusCode": 400,
+                "body": json.dumps({"error": str(exc)}),
+                "headers": {'Content-Type': 'application/json'}
+            }
 
         if not pdf_content:
             return {
