@@ -6,6 +6,43 @@ from generate_quiz import create_pdf
 # Load the required password from an environment variable
 REQUIRED_PASSWORD = os.getenv("PASSWORD")
 
+
+def parameter_help(message=None):
+    """Build a response describing the accepted parameters."""
+
+    details = {
+        "type": {
+            "description": "Quiz category to generate.",
+            "allowed_values": ["addition", "subtraction", "multiplication", "division", "music"],
+            "default": "addition"
+        },
+        "digits": {
+            "description": "Shortcut to set both digits1 and digits2 for math quizzes. For music, selects the clef.",
+            "allowed_values": "Positive integers for math. For music use 1 (treble), 2 (bass), or 3 (mixed).",
+            "default": "2 for math, 3 for music"
+        },
+        "digits1 / digits_first": {
+            "description": "Number of digits for the first operand in math quizzes.",
+            "allowed_values": "Positive integers.",
+            "default": "2 (or value from digits if provided)"
+        },
+        "digits2 / digits_second": {
+            "description": "Number of digits for the second operand in math quizzes.",
+            "allowed_values": "Positive integers. For division, cannot exceed digits1.",
+            "default": "Matches digits1 unless digits is provided"
+        }
+    }
+
+    response_body = {"parameters": details}
+    if message:
+        response_body["message"] = message
+
+    return {
+        "statusCode": 400,
+        "body": json.dumps(response_body),
+        "headers": {'Content-Type': 'application/json'}
+    }
+
 def lambda_handler(event, context):
     """
     Handles requests to generate a quiz PDF and returns it as a download.
@@ -46,12 +83,17 @@ def lambda_handler(event, context):
             }
 
         # 3. Extract quiz parameters
-        quiz_type = query_params.get("type", "addition")
+        quiz_type = query_params.get("type")
         raw_digits = query_params.get("digits")
         raw_digits_first = query_params.get("digits1") or query_params.get("digits_first") or raw_digits
         raw_digits_second = query_params.get("digits2") or query_params.get("digits_second")
         if raw_digits_second is None and raw_digits is not None:
             raw_digits_second = raw_digits
+
+        if not any([quiz_type, raw_digits, raw_digits_first, raw_digits_second]):
+            return parameter_help("No quiz parameters provided. Include at least one of the documented parameters.")
+
+        quiz_type = quiz_type or "addition"
 
         def parse_int(value, field_name):
             if value is None:
@@ -65,31 +107,19 @@ def lambda_handler(event, context):
             digits_first = parse_int(raw_digits_first, "digits1")
             digits_second = parse_int(raw_digits_second, "digits2")
         except ValueError as exc:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": str(exc)}),
-                "headers": {'Content-Type': 'application/json'}
-            }
+            return parameter_help(str(exc))
 
         print(f"Quiz type: {quiz_type}, digits_first: {digits_first}, digits_second: {digits_second}")  # Log quiz_type and digits
 
         # 4. Validate input
         valid_quiz_types = ["addition", "subtraction", "multiplication", "division", "music"]
         if quiz_type not in valid_quiz_types:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": f"Invalid quiz type. Must be one of: {', '.join(valid_quiz_types)}."}),
-                "headers": {'Content-Type': 'application/json'}
-            }
+            return parameter_help(f"Invalid quiz type. Must be one of: {', '.join(valid_quiz_types)}.")
 
         if quiz_type == "music":
             clef_selection = digits_first if digits_first is not None else 3
             if clef_selection not in [1, 2, 3]:
-                return {
-                    "statusCode": 400,
-                    "body": json.dumps({"error": "For music quizzes, digits must be 1, 2, or 3 (treble, bass, mixed)."}),
-                    "headers": {'Content-Type': 'application/json'}
-                }
+                return parameter_help("For music quizzes, digits must be 1, 2, or 3 (treble, bass, mixed).")
             digits_first = clef_selection
             digits_second = None
         else:
@@ -97,22 +127,14 @@ def lambda_handler(event, context):
             digits_second = digits_second if digits_second is not None else digits_first
 
             if digits_first < 1 or digits_second < 1:
-                return {
-                    "statusCode": 400,
-                    "body": json.dumps({"error": "Digits must be positive integers for math quizzes."}),
-                    "headers": {'Content-Type': 'application/json'}
-                }
+                return parameter_help("Digits must be positive integers for math quizzes.")
 
         # 5. Generate the PDF
         print("Generating PDF...")  # Log before PDF generation
         try:
             pdf_content = create_pdf(quiz_type, digits_first, digits_second)
         except ValueError as exc:
-            return {
-                "statusCode": 400,
-                "body": json.dumps({"error": str(exc)}),
-                "headers": {'Content-Type': 'application/json'}
-            }
+            return parameter_help(str(exc))
 
         if not pdf_content:
             return {
