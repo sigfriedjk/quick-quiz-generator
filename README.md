@@ -39,8 +39,9 @@ Remove legacy AWS infrastructure → Run workflow**. It never deploys resources.
 Keep the existing `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` repository
 secrets until cleanup succeeds. The credentials need permission to read and
 delete all resources in the Terraform state, delete the Lambda log group,
-and list/delete S3 object versions and delete the bucket. The old `iam-policy.json`
-is only a historical deployment policy and is not sufficient for this cleanup.
+and list/delete S3 object versions and delete the bucket. Apply the updated `iam-policy.json` to the `GitHubActionsQuickQuiz` IAM user
+before running cleanup. It includes the deletion and status-read permissions
+needed by Terraform and the final cleanup script.
 The `PASSWORD` secret is no longer used.
 
 The workflow downloads the existing state from
