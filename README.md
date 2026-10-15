@@ -17,6 +17,18 @@ print the current sheet or save it as PDF. The controls are excluded from print.
 The layout targets Letter paper; use your browser's fit-to-page setting for other
 paper sizes, and disable browser headers/footers if needed.
 
+## GitHub Pages
+
+The `Publish quiz to GitHub Pages` workflow publishes only `index.html` when it
+changes on `main`. The archive and development files are excluded from the site.
+The expected URL is https://sigfriedjk.github.io/quick-quiz-generator/.
+
+If the first run cannot enable Pages automatically, choose **GitHub Actions** as
+the source in the repository's **Settings → Pages**, then rerun the workflow.
+Private repositories require a GitHub plan that supports Pages. The repository
+can stay private; the generated Pages website is public under standard Pages
+hosting.
+
 ## Archive
 
 The previous Python version, README, image assets, and completed AWS teardown
