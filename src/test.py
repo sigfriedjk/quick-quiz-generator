@@ -81,23 +81,5 @@ def main():
     # Run the test function
     test_bass_clef_positions()
 
-    """
-    Main function to test the lambda_handler locally.
-    """
-    # Simulating an environment variable
-    os.environ["PASSWORD"] = "nHvZtlP17pMWbMX3mUPbRZ96"
-
-    # Create a sample event and context. Adjust the event to test different quiz types and digits.
-    event = {
-        'rawQueryString': 'type=addition&digits=2&password=nHvZtlP17pMWbMX3mUPbRZ96',  # Example: correct password
-    }
-    context = {}  # You can pass an empty context for local testing
-
-    # Call the lambda_handler
-    response = lambda_handler(event, context)
-
-    # Print the response
-    print(json.dumps(response, indent=2))
-
 if __name__ == "__main__":
     main()

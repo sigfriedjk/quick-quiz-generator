@@ -1,3 +1,6 @@
+# Legacy infrastructure retained only so the teardown workflow can destroy it.
+# Do not apply this configuration to deploy new resources.
+
 provider "aws" {
   region = "us-east-1" # Required for ACM with API Gateway
 }
@@ -5,7 +8,6 @@ provider "aws" {
 resource "aws_s3_object" "lambda_package" {
   bucket = "sigfriedjk-quickquiz-generator-bundles"  # Use the static bucket name
   key    = "quiz-lambda.zip"
-  source = "./quiz-lambda.zip"  # Ensure this zip file contains your Python code
 }
 
 resource "aws_iam_role" "lambda_role" {
@@ -38,7 +40,6 @@ resource "aws_lambda_function" "quiz_lambda" {
   handler         = "lambda_function.lambda_handler"
   s3_bucket       = "sigfriedjk-quickquiz-generator-bundles"  # Use the static bucket name
   s3_key          = aws_s3_object.lambda_package.key
-  source_code_hash = filebase64sha256("./quiz-lambda.zip")
   timeout         = 10
 
   # Setting environment variables

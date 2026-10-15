@@ -206,3 +206,5 @@ output
 archive
 quiz-lambda.zip
 package
+# Locally generated quizzes
+quiz_*.pdf

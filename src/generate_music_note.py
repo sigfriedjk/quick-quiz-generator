@@ -1,5 +1,6 @@
 from PIL import Image, ImageDraw
 import argparse
+from pathlib import Path
 
 # Constants
 SIZE = 50  # Reduce image size to fit everything
@@ -47,7 +48,7 @@ def draw_music_staff(clef_type, note_letter):
     if clef_type in clef_images:
         clef_path, orig_width, orig_height, position, factor, xAdj = clef_images[clef_type]
         try:
-            clef_img = Image.open(clef_path).convert("RGBA")  # Open the image with alpha transparency
+            clef_img = Image.open(Path(__file__).resolve().parent.parent / clef_path).convert("RGBA")  # Open the image with alpha transparency
             new_size = (int(orig_width * factor), int(orig_height * factor))
             clef_img = clef_img.resize(new_size, Image.LANCZOS)  # Resize with high-quality filter
             img.paste(clef_img, position, clef_img)  # Paste using the alpha channel
@@ -94,5 +95,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     img = draw_music_staff(args.clef, args.note)
     output_path = "output/music_staff.png"
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     img.save(output_path)
     img.show()
