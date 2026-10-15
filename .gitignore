@@ -203,7 +203,6 @@ override.tf.json
 
 # My Additions
 output
-archive
 quiz-lambda.zip
 package
 # Locally generated quizzes
